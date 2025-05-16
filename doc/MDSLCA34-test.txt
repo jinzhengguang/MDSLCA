@@ -1,0 +1,62 @@
+********************************************************************************
+INTERFACE:
+Data:  /tmp/codalab/tmpwa13Lo/run/input/ref
+Predictions:  /tmp/codalab/tmpwa13Lo/run/input/res
+Backend:  numpy
+Split:  test
+Config:  /tmp/codalab/tmpwa13Lo/run/program/semantic-kitti.yaml
+Limit:  None
+Codalab:  /tmp/codalab/tmpwa13Lo/run/output
+********************************************************************************
+Opening data config file /tmp/codalab/tmpwa13Lo/run/program/semantic-kitti.yaml
+Ignoring xentropy class  0  in IoU evaluation
+[IOU EVAL] IGNORE:  [0]
+[IOU EVAL] INCLUDE:  [ 1  2  3  4  5  6  7  8  9 10 11 12 13 14 15 16 17 18 19]
+Evaluating sequences: 10% 20% 30% 40% 50% 60% 70% 80% 90% Validation set:
+Acc avg 92.0
+IoU avg 73.7
+IoU class 1 [car] = 97.6
+IoU class 2 [bicycle] = 70.2
+IoU class 3 [motorcycle] = 73.7
+IoU class 4 [truck] = 60.9
+IoU class 5 [other-vehicle] = 71.8
+IoU class 6 [person] = 78.6
+IoU class 7 [bicyclist] = 78.4
+IoU class 8 [motorcyclist] = 56.2
+IoU class 9 [road] = 90.0
+IoU class 10 [parking] = 72.5
+IoU class 11 [sidewalk] = 75.8
+IoU class 12 [other-ground] = 36.2
+IoU class 13 [building] = 93.6
+IoU class 14 [fence] = 74.0
+IoU class 15 [vegetation] = 86.3
+IoU class 16 [trunk] = 75.6
+IoU class 17 [terrain] = 71.4
+IoU class 18 [pole] = 66.6
+IoU class 19 [traffic-sign] = 70.6
+********************************************************************************
+below can be copied straight for paper table
+97.6,70.2,73.7,60.9,71.8,78.6,78.4,56.2,90.0,72.5,75.8,36.2,93.6,74.0,86.3,75.6,71.4,66.6,70.6,73.7,92.0
+
+accuracy_mean: 91.96519725351325
+iou_bicycle: 70.21367816799084
+iou_bicyclist: 78.4269405463746
+iou_building: 93.60586050838168
+iou_car: 97.5659987061112
+iou_fence: 73.95143192215244
+iou_mean: 73.68050024387529
+iou_motorcycle: 73.69356981363026
+iou_motorcyclist: 56.24090776840268
+iou_other-ground: 36.183921783941905
+iou_other-vehicle: 71.81095134048704
+iou_parking: 72.50793222114531
+iou_person: 78.5727587108116
+iou_pole: 66.59044946699625
+iou_road: 89.96067216615141
+iou_sidewalk: 75.80483314577079
+iou_terrain: 71.42492074707452
+iou_traffic-sign: 70.5608483940536
+iou_truck: 60.930070127626635
+iou_trunk: 75.5925749550347
+iou_vegetation: 86.29118414149289
+
