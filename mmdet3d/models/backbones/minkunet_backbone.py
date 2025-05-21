@@ -34,47 +34,6 @@ if IS_MINKOWSKI_ENGINE_AVAILABLE:
     import MinkowskiEngine as ME
 
 
-# from MinkowskiEngine.modules.senet_block import SELayer
-class SELayerorigin(nn.Module):
-    def __init__(self, channel, reduction=8, D=-1):
-        # Global coords does not require coords_key
-        super(SELayerorigin, self).__init__()
-        self.fc = nn.Sequential(
-            ME.MinkowskiLinear(channel, channel // reduction),
-            ME.MinkowskiReLU(inplace=True),
-            ME.MinkowskiLinear(channel // reduction, channel),
-            ME.MinkowskiSigmoid()
-        )
-        self.pooling = ME.MinkowskiGlobalPooling()
-        self.broadcast_mul = ME.MinkowskiBroadcastMultiplication()
-
-    def forward(self, x):
-        y = self.pooling(x)
-        y = self.fc(y)
-        return self.broadcast_mul(x, y)
-
-
-class SELayer(nn.Module):
-    def __init__(self, channel, reduction=8):
-        # Global coords does not require coords_key
-        super(SELayer, self).__init__()
-        self.convbnrelu = MinkowskiConvModule(channel, channel, 3)
-        self.pooling = ME.MinkowskiGlobalPooling()
-        self.fc = nn.Sequential(
-            ME.MinkowskiLinear(channel, channel // reduction),
-            ME.MinkowskiReLU(inplace=True),
-            ME.MinkowskiLinear(channel // reduction, channel),
-            ME.MinkowskiSigmoid()
-        )
-        self.broadcast_mul = ME.MinkowskiBroadcastMultiplication()
-
-    def forward(self, x):
-        x = self.convbnrelu(x)
-        y = self.pooling(x)
-        y = self.fc(y)
-        return self.broadcast_mul(x, y)
-
-
 class SEAttention(nn.Module):
     def __init__(self, channel, reduction=8, D=-1):
         super().__init__()
@@ -134,60 +93,11 @@ class ResidualPathME(nn.Module):
         )
 
     def forward(self, x):
-        # out = self.relu(self.seatt(self.basicconv(x)) + x)
-        # Squeeze-and-excitation networks, 2018 CVPR
-        # All the attention you need: Global-local, spatial-channel attention for image retrieval, 2022 CVPR
-        # Dual attention network for scene segmentation, 2019 CVPR
         # 2025-02-19 Jinzheng Guang
         x = self.basicconv(x)
         att = x + self.seatt(x) + self.spatt(x)
         out = self.convbnrelu(att)
         return out
-
-
-class ResidualPath(nn.Module):
-    def __init__(self, inc, outc, stride=1, dilation=1):
-        super().__init__()
-        self.basicconv = nn.Sequential(
-            torchsparse.nn.Conv3d(inc, outc, kernel_size=3, dilation=dilation, stride=stride),
-            torchsparse.nn.BatchNorm(outc),
-            torchsparse.nn.ReLU(True)
-        )
-        self.catt = ChannelAttention(channel=outc)
-        self.relu = torchsparse.nn.ReLU(True)
-
-    def forward(self, x):
-        out = self.relu(self.catt(self.basicconv(x)) + x)
-        return out
-
-
-class ChannelAttention(nn.Module):
-    def __init__(self, channel, reduction=16):
-        super().__init__()
-        # 2023-03-21 Jinzheng Guang CBAM attention
-        self.maxpool = nn.AdaptiveMaxPool1d(1)
-        self.avgpool = nn.AdaptiveAvgPool1d(1)
-        self.se = nn.Sequential(
-            nn.Conv1d(channel, channel // reduction, 1, bias=False),
-            nn.ReLU(inplace=True),
-            nn.Conv1d(channel // reduction, channel, 1, bias=False)
-        )
-        self.sigmoid = nn.Sigmoid()
-        self.spnnavg = torchsparse.nn.GlobalAvgPool()
-        self.spnnmax = torchsparse.nn.GlobalMaxPool()
-
-    def forward(self, x):
-        xtemp = x.F.contiguous().permute(1, 0)
-        # maxp = self.spnnmax(x)
-        avgp = self.spnnavg(x)
-        max_result = self.maxpool(xtemp)
-        avg_result = self.avgpool(avgp.permute(1,0))
-        max_out = self.se(max_result)
-        avg_out = self.se(avg_result)
-        output = self.sigmoid(max_out + avg_out)
-        outputs = xtemp * output
-        x.F = outputs.permute(1, 0)
-        return x
 
 
 @MODELS.register_module()
@@ -243,29 +153,6 @@ class MinkUNetBackbone(BaseModule):
                 else TorchSparseBottleneck
             # for torchsparse, residual branch will be implemented internally
             residual_branch = None
-
-            # 2025-02-14 Jinzheng Guang
-            self.path = nn.ModuleList([
-                nn.Sequential(
-                    ResidualPath(encoder_channels[2], encoder_channels[2])
-                ),
-                nn.Sequential(
-                    ResidualPath(encoder_channels[1], encoder_channels[1]),
-                    ResidualPath(encoder_channels[1], encoder_channels[1])
-                ),
-                nn.Sequential(
-                    ResidualPath(encoder_channels[0], encoder_channels[0]),
-                    ResidualPath(encoder_channels[0], encoder_channels[0]),
-                    ResidualPath(encoder_channels[0], encoder_channels[0])
-                ),
-                nn.Sequential(
-                    ResidualPath(encoder_channels[0], encoder_channels[0]),
-                    ResidualPath(encoder_channels[0], encoder_channels[0]),
-                    ResidualPath(encoder_channels[0], encoder_channels[0]),
-                    ResidualPath(encoder_channels[0], encoder_channels[0])
-                )
-            ])
-
         elif sparseconv_backend == 'spconv':
             if not IS_SPCONV2_AVAILABLE:
                 warnings.warn('Spconv 2.x is not available,'
@@ -294,8 +181,6 @@ class MinkUNetBackbone(BaseModule):
                 else MinkowskiBottleneck
             residual_branch = partial(MinkowskiConvModule, act_cfg=None)
 
-            # from MinkowskiEngine.modules.senet_block import SELayer
-            # self.se = SELayer(channel=256, reduction=16)
             # 2025-02-14 Jinzheng Guang
             self.path = nn.ModuleList([
                 nn.Sequential(
@@ -432,7 +317,7 @@ class MinkUNetBackbone(BaseModule):
             x = decoder_layer[0](x)
 
             if self.sparseconv_backend == 'torchsparse':
-                x = torchsparse.cat((x, self.path[i](laterals[i])))
+                x = torchsparse.cat((x, laterals[i]))
             elif self.sparseconv_backend == 'spconv':
                 x = replace_feature(
                     x, torch.cat((x.features, laterals[i].features), dim=1))
