@@ -110,7 +110,7 @@ We also provide instructions for evaluating our pretrained models with 4 GPUs. P
   volume={},
   number={},
   pages={1-15},
-  doi={10.1109/TCSVT.2026.3662054}}
+  doi={10.1109/TCSVT.2026.3662054}
 }
 ```
 
