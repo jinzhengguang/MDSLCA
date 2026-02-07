@@ -1,6 +1,7 @@
 # MDSLCA
 
-Official PyTorch implementation of MDSLCA: Multi-scale Dilated Spatial and Local Channel Attention for LiDAR Point Cloud Semantic Segmentation.
+Official PyTorch implementation of [MDSLCA: Multi-scale Dilated Spatial and Local Channel Attention for LiDAR Point Cloud Semantic Segmentation](https://doi.org/10.1109/TCSVT.2026.3662054)
+
 
 ### [https://www.youtube.com/watch?v=C0QQHhWEoAA](https://www.youtube.com/watch?v=C0QQHhWEoAA)
 
@@ -8,6 +9,8 @@ Official PyTorch implementation of MDSLCA: Multi-scale Dilated Spatial and Local
 
 
 ## Updates
+
+- **(2026-02-06)** 🔥 Our MDSLCA is accepted by [TCSVT](https://doi.org/10.1109/TCSVT.2026.3662054). 
 
 - **(2025-05-13)** 🔥 We release the code and model of our MDSLCA.
 
@@ -95,6 +98,21 @@ We also provide instructions for evaluating our pretrained models with 4 GPUs. P
 ./tools/dist_test.sh MDSLCA/configs/MDSLCA.py MDSLCA.pth 4
 ```
 
+
+## Citation
+
+```
+@article{guang2026mdslca,
+  author={Guang, Jinzheng and Zhang, Qianyi and Liu, Jingtai},
+  journal={IEEE Transactions on Circuits and Systems for Video Technology}, 
+  title={MDSLCA: Multi-scale Dilated Spatial and Local Channel Attention for LiDAR Point Cloud Semantic Segmentation}, 
+  year={2026},
+  volume={},
+  number={},
+  pages={1-15},
+  doi={10.1109/TCSVT.2026.3662054}}
+}
+```
 
 ## Acknowledgement
 
